@@ -1096,13 +1096,21 @@ class NumberElement(FormElement):
 
 
 class TextBoxElement(FormElement):
+    """
+    A form element representing a generic textbox
+
+    The shorthand is any string starting with an _.::
+
+        e = FormElement.auto("_default")
+
+    Everything after the underscore is taken as the default value.
+    """
     state = wp.ValueProperty('ui')
 
     def _build_ui(self):
         self._widget = GenericTextBox()
         self._widget.textChanged.connect(nonpartial(self.changed))
-        if self.params.startswith('str('):
-            self.set_value(eval(self.params))
+        self.set_value(self.params[1:])
         return self._widget
 
     def value(self, layer=None, view=None):
@@ -1114,20 +1122,28 @@ class TextBoxElement(FormElement):
     @classmethod
     def recognizes(cls, params):
         try:
-            if params.startswith('str'):
+            if isinstance(params, str) & params.startswith('_'):
                 return True
         except AttributeError:
-            pass
+            return None
 
 
 class FloatElement(FormElement):
+    """
+    A form element representing a generic number box.
+
+    The shorthand is any number::
+
+        e = FormElement.auto(2)
+
+    The number itself is taken as the default value.
+    """
     state = wp.ValueProperty('ui')
 
     def _build_ui(self):
         self._widget = GenericTextBox()
         self._widget.textChanged.connect(nonpartial(self.changed))
-        if self.params.startswith('float('):
-            self.set_value(eval(self.params))
+        self.set_value(self.params)
         return self._widget
 
     def value(self, layer=None, view=None):
@@ -1141,11 +1157,7 @@ class FloatElement(FormElement):
 
     @classmethod
     def recognizes(cls, params):
-        try:
-            if params.startswith('float'):
-                return True
-        except AttributeError:
-            pass
+        return isinstance(params, (int, float)) and not isinstance(params, bool)
 
 class GenericTextBox(QtGui.QWidget):
 

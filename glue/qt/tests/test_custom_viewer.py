@@ -29,7 +29,7 @@ viewer = custom_viewer('Testing Custom Viewer',
                        e=False,
                        f=['a', 'b', 'c'],
                        g=OrderedDict(a=1, b=2, c=3),
-                       h='float(64)'
+                       h=64
                        )
 
 
@@ -86,7 +86,7 @@ class ViewerSubclass(CustomViewer):
     e = False
     f = ['a', 'b', 'c']
     g = OrderedDict(a=1, b=2, c=3)
-    h = 'float(64)'
+    h = 64
 
     def setup(self, axes):
         return setup(axes)
@@ -319,18 +319,17 @@ class TestFormElements(object):
         assert isinstance(e, ChoiceElement)
 
     def test_float(self):
-        e = FormElement.auto('float')
+        e = FormElement.auto(1.2)
         assert isinstance(e, FloatElement)
 
-        e = FormElement.auto('float(1.2)')
-        assert e.value() == 1.2
+        e = FormElement.auto(2)
+        assert isinstance(e, FloatElement)
+        assert e.value() == 2
 
     def test_textbox(self):
-        e = FormElement.auto('str')
+        e = FormElement.auto('_str')
         assert isinstance(e, TextBoxElement)
-
-        e = FormElement.auto('str("x=y")')
-        assert e.value() == 'x=y'
+        assert e.value() == 'str'
 
     def test_unrecognized(self):
         with pytest.raises(ValueError):

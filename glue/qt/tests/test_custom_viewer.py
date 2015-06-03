@@ -12,7 +12,7 @@ from ...core.tests.util import simple_session
 from ..custom_viewer import FormElement, NumberElement, \
     ChoiceElement, CustomViewer, \
     CustomSubsetState, AttributeInfo, \
-    FloatElement, TextBoxElement
+    FloatElement, TextBoxElement, SettingsOracle, MissingSettingError
 from ..glue_application import GlueApplication
 from ...core.tests.test_state import check_clone_app, clone
 
@@ -260,7 +260,6 @@ class TestCustomSelectMethod(object):
         v = w._coordinator
         roi = MagicMock()
         s = CustomSubsetState(type(v), roi, v.settings())
-
         assert_array_equal(s.to_mask(self.data), [False, True, True])
 
     def test_state_view(self):
@@ -364,3 +363,21 @@ class TestAttributeInfo(object):
         assert_array_equal(v, [3, 4, 5])
         assert v.id == self.d.id['x']
         assert v.categories is None
+
+def test_oracle_raises_original_error():
+    class BadFormElement(TextBoxElement):
+
+        def value(self, layer=None, view=None):
+            raise AttributeError('Inner Error')
+
+    oracle = SettingsOracle({'bad_form': BadFormElement('str("text")')})
+
+    try:
+        oracle('bad_form')
+    except AttributeError as err:
+        assert 'Inner Error' in err.args
+
+    with pytest.raises(MissingSettingError):
+        oracle('missing')
+
+

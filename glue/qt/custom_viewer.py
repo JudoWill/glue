@@ -246,15 +246,15 @@ def introspect_and_call(func, settings):
     try:
         # get the current values of each input to the UDF
         a = [settings(item) for item in a]
-    except AttributeError as exc:
+    except MissingSettingError as exc:
         # the UDF expects an argument that we don't know how to provide
         # try to give a helpful error message
         missing = exc.args[0]
         setting_list = "\n -".join(settings.setting_names())
-        raise AttributeError("This custom viewer is trying to use an "
-                             "unrecognized variable named %s\n. Valid "
-                             "variable names are\n -%s" %
-                             (missing, setting_list))
+        raise MissingSettingError("This custom viewer is trying to use an "
+                                  "unrecognized variable named %s\n. Valid "
+                                  "variable names are\n -%s" %
+                                  (missing, setting_list))
     k = k or {}
 
     return func(*a, **k)
@@ -268,6 +268,8 @@ class SettingsOracleInterface(object):
     def setting_names(self):
         return NotImplementedError()
 
+class MissingSettingError(KeyError):
+    pass
 
 class SettingsOracle(SettingsOracleInterface):
 
@@ -280,18 +282,18 @@ class SettingsOracle(SettingsOracleInterface):
         self.view = override.pop('view', None)
 
     def __call__(self, key):
-        try:
-            if key == 'self':
-                return self.override['_self']
-            if key in self.override:
-                return self.override[key]
-            if key == 'style':
-                return self.layer.style
-            if key == 'layer':
-                return self.layer
-            return self.settings[key].value(self.layer, self.view)
-        except (KeyError, AttributeError):
-            raise AttributeError(key)
+        if key == 'self':
+            return self.override['_self']
+        if key in self.override:
+            return self.override[key]
+        if key == 'style':
+            return self.layer.style
+        if key == 'layer':
+            return self.layer
+        if key not in self.settings:
+            raise MissingSettingError(key)
+
+        return self.settings[key].value(self.layer, self.view)
 
     def setting_names(self):
         return list(set(list(self.settings.keys()) + ['style', 'layer']))
@@ -421,6 +423,9 @@ class FrozenSettings(object):
                 return self.value(key, layer, view)
 
         return o
+
+    def __contains__(self, item):
+        return item in self.kwargs
 
     def keys(self):
         return self.kwargs.keys()

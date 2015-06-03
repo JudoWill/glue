@@ -274,6 +274,13 @@ class MissingSettingError(KeyError):
 class SettingsOracle(SettingsOracleInterface):
 
     def __init__(self, settings, **override):
+        reserved_words = {'axes', 'layer', 'self'}
+        for key in settings.keys():
+            if key in reserved_words:
+                raise AssertionError('You tried to create a custom setting %s' % key +
+                                     ' but you cannot use a reserved word: ' +
+                                     ','.join(sorted(reserved_words)))
+
         self.settings = settings  # dict-like, items have a value() method
         self.override = override  # look for settings here first
 
@@ -406,7 +413,7 @@ class FrozenSettings(object):
         try:
             result = self.kwargs[key]
         except KeyError:
-            raise AttributeError(key)
+            raise MissingSettingError(key)
 
         if isinstance(result, AttributeInfo) and layer is not None:
             cid = result.id

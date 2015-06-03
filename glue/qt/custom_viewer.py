@@ -1094,12 +1094,11 @@ class TextBoxElement(FormElement):
     state = wp.ValueProperty('ui')
 
     def _build_ui(self):
-        w = QtGui.QLineEdit()
-        w.textChanged.connect(nonpartial(self.changed))
-        self._widget = w
+        self._widget = GenericTextBox()
+        self._widget.textChanged.connect(nonpartial(self.changed))
         if self.params.startswith('str('):
             self.set_value(eval(self.params))
-        return w
+        return self._widget
 
     def value(self, layer=None, view=None):
         return self._widget.text()
@@ -1120,12 +1119,11 @@ class FloatElement(FormElement):
     state = wp.ValueProperty('ui')
 
     def _build_ui(self):
-        w = QtGui.QLineEdit()
-        w.textChanged.connect(nonpartial(self.changed))
-        self._widget = w
+        self._widget = GenericTextBox()
+        self._widget.textChanged.connect(nonpartial(self.changed))
         if self.params.startswith('float('):
             self.set_value(eval(self.params))
-        return w
+        return self._widget
 
     def value(self, layer=None, view=None):
         try:
@@ -1136,7 +1134,6 @@ class FloatElement(FormElement):
     def set_value(self, val):
         self._widget.setText(str(val))
 
-
     @classmethod
     def recognizes(cls, params):
         try:
@@ -1144,6 +1141,30 @@ class FloatElement(FormElement):
                 return True
         except AttributeError:
             pass
+
+class GenericTextBox(QtGui.QWidget):
+
+    def __init__(self):
+        super(GenericTextBox, self).__init__()
+        self._textbox = QtGui.QLineEdit()
+
+    @property
+    def valueChanged(self):
+        return self._textbox.textChanged
+
+    @property
+    def textChanged(self):
+        return self._textbox.textChanged
+
+    def value(self, layer=None, view=None):
+        return self._textbox.text()
+
+    def set_value(self, text):
+        self._textbox.setText(text)
+
+    setText = set_value
+    setValue = set_value
+
 
 class LabeledSlider(QtGui.QWidget):
 

@@ -1082,7 +1082,6 @@ class NumberElement(FormElement):
             return False
 
     def _build_ui(self):
-        w = QtGui.QSlider()
         w = LabeledSlider(*self.params[:3])
         w.valueChanged.connect(nonpartial(self.changed))
         return w
@@ -1090,6 +1089,61 @@ class NumberElement(FormElement):
     def value(self, layer=None, view=None):
         return self.ui.value()
 
+
+class TextBoxElement(FormElement):
+    state = wp.ValueProperty('ui')
+
+    def _build_ui(self):
+        w = QtGui.QLineEdit()
+        w.textChanged.connect(nonpartial(self.changed))
+        self._widget = w
+        if self.params.startswith('str('):
+            self.set_value(eval(self.params))
+        return w
+
+    def value(self, layer=None, view=None):
+        return self._widget.text()
+
+    def set_value(self, val):
+        self._widget.setText(str(val))
+
+    @classmethod
+    def recognizes(cls, params):
+        try:
+            if params.startswith('str'):
+                return True
+        except AttributeError:
+            pass
+
+
+class FloatElement(FormElement):
+    state = wp.ValueProperty('ui')
+
+    def _build_ui(self):
+        w = QtGui.QLineEdit()
+        w.textChanged.connect(nonpartial(self.changed))
+        self._widget = w
+        if self.params.startswith('float('):
+            self.set_value(eval(self.params))
+        return w
+
+    def value(self, layer=None, view=None):
+        try:
+            return float(self._widget.text())
+        except ValueError:
+            return None
+
+    def set_value(self, val):
+        self._widget.setText(str(val))
+
+
+    @classmethod
+    def recognizes(cls, params):
+        try:
+            if params.startswith('float'):
+                return True
+        except AttributeError:
+            pass
 
 class LabeledSlider(QtGui.QWidget):
 

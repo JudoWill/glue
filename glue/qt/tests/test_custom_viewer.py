@@ -9,7 +9,10 @@ from ... import custom_viewer
 from ...core import Data
 from ...core.subset import SubsetState
 from ...core.tests.util import simple_session
-from ..custom_viewer import FormElement, NumberElement, ChoiceElement, CustomViewer, CustomSubsetState, AttributeInfo
+from ..custom_viewer import FormElement, NumberElement, \
+    ChoiceElement, CustomViewer, \
+    CustomSubsetState, AttributeInfo, \
+    FloatElement, TextBoxElement
 from ..glue_application import GlueApplication
 from ...core.tests.test_state import check_clone_app, clone
 
@@ -26,6 +29,7 @@ viewer = custom_viewer('Testing Custom Viewer',
                        e=False,
                        f=['a', 'b', 'c'],
                        g=OrderedDict(a=1, b=2, c=3),
+                       h='float(64)'
                        )
 
 
@@ -45,8 +49,8 @@ def _setup(axes):
 
 
 @viewer.plot_data
-def _plot_data(axes, a, b, g):
-    plot_data(axes=axes, a=a, b=b, g=g)
+def _plot_data(axes, a, b, g, h):
+    plot_data(axes=axes, a=a, b=b, g=g, h=h)
     return []
 
 
@@ -82,12 +86,13 @@ class ViewerSubclass(CustomViewer):
     e = False
     f = ['a', 'b', 'c']
     g = OrderedDict(a=1, b=2, c=3)
+    h = 'float(64)'
 
     def setup(self, axes):
         return setup(axes)
 
-    def plot_data(self, axes, a, b, g):
-        return plot_data(axes=axes, a=a, b=b, g=g)
+    def plot_data(self, axes, a, b, g, h):
+        return plot_data(axes=axes, a=a, b=b, g=g, h=h)
 
     def plot_subset(self, b, c, d, e, f, style):
         return plot_subset(b=b, c=c, d=d, e=e, f=f, style=style)
@@ -144,9 +149,10 @@ class TestCustomViewer(object):
 
         a, k = plot_data.call_args
         assert isinstance(k['axes'], Axes)
-        assert set(k.keys()) == set(('axes', 'a', 'b', 'g'))
+        assert set(k.keys()) == set(('axes', 'a', 'b', 'g', 'h'))
         assert k['a'] == 50
         assert k['g'] == 1
+        assert k['h'] == 64
 
     def test_plot_subset(self):
         w = self.build()
@@ -312,6 +318,20 @@ class TestFormElements(object):
     def test_choice_tuple(self):
         e = FormElement.auto(('a', 'b'))
         assert isinstance(e, ChoiceElement)
+
+    def test_float(self):
+        e = FormElement.auto('float')
+        assert isinstance(e, FloatElement)
+
+        e = FormElement.auto('float(1.2)')
+        assert e.value() == 1.2
+
+    def test_textbox(self):
+        e = FormElement.auto('str')
+        assert isinstance(e, TextBoxElement)
+
+        e = FormElement.auto('str("x=y")')
+        assert e.value() == 'x=y'
 
     def test_unrecognized(self):
         with pytest.raises(ValueError):

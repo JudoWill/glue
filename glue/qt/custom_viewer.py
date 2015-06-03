@@ -1159,6 +1159,9 @@ class GenericTextBox(QtGui.QWidget):
     def value(self, layer=None, view=None):
         return self._textbox.text()
 
+    def text(self):
+        return self._textbox.text()
+
     def set_value(self, text):
         self._textbox.setText(text)
 

@@ -115,12 +115,13 @@ class AttributeInfo(np.ndarray):
     """
 
     @classmethod
-    def make(cls, id, values, categories=None):
+    def make(cls, id, values, comp, categories=None):
         values = np.asarray(values)
         result = values.view(AttributeInfo)
         result.id = id
         result.values = values
         result.categories = categories
+        result._component = comp
         return result
 
     @classmethod
@@ -142,14 +143,14 @@ class AttributeInfo(np.ndarray):
         categories = None
         if isinstance(comp, core.data.CategoricalComponent):
             categories = comp._categories
-        return cls.make(cid, values, categories)
+        return cls.make(cid, values, comp, categories)
 
     def __gluestate__(self, context):
         return dict(cid=context.id(self.id))
 
     @classmethod
     def __setgluestate__(cls, rec, context):
-        return cls.make(context.object(rec['cid']), [])
+        return cls.make(context.object(rec['cid']), [], None)
 
 
 class ViewerState(object):
@@ -1321,7 +1322,7 @@ class FixedComponent(FormElement):
         if layer is not None:
             cid = layer.data.id[cid]
             return AttributeInfo.from_layer(layer, cid, view)
-        return AttributeInfo.make(cid, [])
+        return AttributeInfo.make(cid, [], None)
 
     @property
     def state(self):
@@ -1366,7 +1367,7 @@ class ComponenentElement(FormElement, core.hub.HubListener):
     def value(self, layer=None, view=None):
         cid = self._component
         if layer is None or cid is None:
-            return AttributeInfo.make(cid, [])
+            return AttributeInfo.make(cid, [], None)
         return AttributeInfo.from_layer(layer, cid, view)
 
     def _list_components(self):

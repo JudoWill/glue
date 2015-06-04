@@ -374,6 +374,13 @@ class TestAttributeInfo(object):
         assert v.id == self.d.id['x']
         assert v.categories is None
 
+    def test_has_component(self):
+
+        v = AttributeInfo.from_layer(self.s, self.d.id['x'])
+        comp = self.s.data.get_component(self.d.id['x'])
+        assert v._component == comp
+
+
 
 class TestSettingsOracle(object):
 

@@ -413,7 +413,7 @@ class TestSettingsOracle(object):
     def test_setting_names(self):
 
         oracle = SettingsOracle({'Form': TextBoxElement('_text')})
-        assert oracle.setting_names() == ['style', 'layer', 'Form']
+        assert sorted(oracle.setting_names()) == sorted(['style', 'layer', 'Form'])
 
 
     def test_raises_if_overlapping_reserved_words(self):

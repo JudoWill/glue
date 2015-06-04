@@ -332,6 +332,16 @@ class TestFormElements(object):
         assert isinstance(e, TextBoxElement)
         assert e.value() == 'str'
 
+    def test_recognizes_subsubclasses(self):
+
+        class SubClassFormElement(TextBoxElement):
+            @classmethod
+            def recognizes(cls, params):
+                return params == 'specific_class'
+
+        e = FormElement.auto('specific_class')
+        assert isinstance(e, SubClassFormElement)
+
     def test_unrecognized(self):
         with pytest.raises(ValueError):
             e = FormElement.auto(None)

@@ -1041,7 +1041,11 @@ class FormElement(object):
         given a shorthand object. For examle,
         FormElement.auto((0., 1.)) returns a NumberElement
         """
-        for cls in FormElement.__subclasses__():
+
+        def subclasses(cls):
+            return cls.__subclasses__() + [g for s in cls.__subclasses__() for g in subclasses(s)]
+
+        for cls in subclasses(FormElement):
             if cls.recognizes(params):
                 return cls(params)
         raise ValueError("Unrecognzied UI Component: %s" % (params,))
@@ -1365,6 +1369,12 @@ class ComponenentElement(FormElement, core.hub.HubListener):
             return AttributeInfo.make(cid, [])
         return AttributeInfo.from_layer(layer, cid, view)
 
+    def _list_components(self):
+        comps = list(set([c for l in self.container.layers
+                          for c in l.data.components if not c._hidden]))
+        comps = sorted(comps, key=lambda x: x.label)
+        return comps
+
     def _update_components(self):
         combo = self.ui
         old = self._component
@@ -1372,9 +1382,7 @@ class ComponenentElement(FormElement, core.hub.HubListener):
         combo.blockSignals(True)
         combo.clear()
 
-        comps = list(set([c for l in self.container.layers
-                          for c in l.data.components if not c._hidden]))
-        comps = sorted(comps, key=lambda x: x.label)
+        comps = self._list_components()
         for c in comps:
             combo.addItem(c.label, userData=c)
 

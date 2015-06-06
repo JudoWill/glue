@@ -1173,9 +1173,13 @@ class FloatElement(FormElement):
 
 class GenericTextBox(QtGui.QWidget):
 
-    def __init__(self):
-        super(GenericTextBox, self).__init__()
+    def __init__(self, parent=None):
+        super(GenericTextBox, self).__init__(parent)
+        self._l = QtGui.QHBoxLayout()
         self._textbox = QtGui.QLineEdit()
+        self._l.setContentsMargins(2, 2, 2, 2)
+        self._l.addWidget(self._textbox)
+        self.setLayout(self._l)
 
     @property
     def valueChanged(self):

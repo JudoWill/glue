@@ -33,14 +33,20 @@ def plot_data(axes, prediction, alpha, confidence_interval):
         ci = res.conf_int(confidence_interval)
 
         width = ci[1]-ci[0]
-        alphas = np.ones_like(width.values)
-        alphas[res.pvalues < alpha] = 0.3
+        positions = np.arange(len(width))-0.4
+        sig_mask = res.pvalues.values < alpha
 
-        axes.barh(left=ci[0],
-                  width=width,
-                  bottom=np.arange(len(width))-0.4,
+        axes.barh(left=ci[0].values[sig_mask],
+                  width=width.values[sig_mask],
+                  bottom=positions[sig_mask],
                   height=0.8,
-                  alpha=alphas)
+                  alpha=1)
+
+        axes.barh(left=ci[0].values[~sig_mask],
+                  width=width.values[~sig_mask],
+                  bottom=positions[~sig_mask],
+                  height=0.8,
+                  alpha=0.3)
+
         axes.set_yticks(range(len(ci)))
         axes.set_yticklabels(ci.index)
-        res.params.plot(kind='barh', ax=axes, grid=False)
